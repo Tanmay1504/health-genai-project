@@ -1,0 +1,76 @@
+# =============================================================================
+# docker-compose for HEALTH_GEN_AI
+#
+#   docker compose up -d neo4j              # minimum: just the graph database
+#   docker compose --profile full up -d     # neo4j + Python API + Next.js UI
+#
+# Ollama is deliberately NOT containerised: on Apple Silicon, Docker cannot use
+# the Metal GPU, so a native `brew install ollama` is ~5-10x faster. The API
+# container reaches it via host.docker.internal.
+# =============================================================================
+services:
+  neo4j:
+    # 5.26 is the Neo4j 5 LTS line; the image is multi-arch (arm64 native on M1/M3).
+    image: neo4j:5.26-community
+    container_name: hga-neo4j
+    ports:
+      - "7474:7474"   # Neo4j Browser  -> http://localhost:7474
+      - "7687:7687"   # Bolt protocol  -> used by the Python driver
+    environment:
+      NEO4J_AUTH: "neo4j/${NEO4J_PASSWORD:-change-me-local-only}"
+      # Downloads the Graph Data Science plugin on first start (needs internet).
+      # GDS gives us Louvain community detection + PageRank inside the DB.
+      NEO4J_PLUGINS: '["graph-data-science"]'
+      NEO4J_dbms_security_procedures_unrestricted: "gds.*"
+      NEO4J_dbms_security_procedures_allowlist: "gds.*"
+      # Modest memory so it fits next to Ollama even on an 8 GB Mac. Plenty for
+      # this dataset; raise NEO4J_HEAP_MAX in .env for much larger Synthea runs.
+      NEO4J_server_memory_heap_initial__size: "512m"
+      NEO4J_server_memory_heap_max__size: "${NEO4J_HEAP_MAX:-1g}"
+      NEO4J_server_memory_pagecache_size: "512m"
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  # --- Optional: run the Python API in a container (profile "full") ----------
+  api:
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: hga-api
+    env_file: .env
+    environment:
+      NEO4J_URI: bolt://neo4j:7687
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+    ports:
+      - "8000:8000"
+    volumes:
+      # Data, models and the audit DB are produced on the host by the pipeline
+      # and mounted in, so the container stays stateless.
+      - ./data:/app/data
+      - ./brain/models:/app/brain/models
+      - ./trust:/app/trust
+    depends_on:
+      neo4j:
+        condition: service_healthy
+
+  # --- Optional: run the Next.js UI in a container (profile "full") ----------
+  ui:
+    profiles: ["full"]
+    build:
+      context: ./ui
+    container_name: hga-ui
+    environment:
+      API_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  neo4j_data:

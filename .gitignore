@@ -1,0 +1,62 @@
+# ---------------------------------------------------------------------------
+# Secrets — NEVER commit. Copy .env.example -> .env and fill locally.
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# ---------------------------------------------------------------------------
+# Generated data — even though it is synthetic, it is large and reproducible,
+# and treating all patient-shaped data as "never commit" is the right habit.
+# Hand-written knowledge docs (data/knowledge/) ARE committed: they are text
+# we authored, not patient records.
+# ---------------------------------------------------------------------------
+data/tools/
+data/synthea_output/
+data/generated_fhir/
+data/planted_fhir/
+data/processed/
+data/chroma/
+*.csv
+*.parquet
+*.ndjson
+
+# Trained model artefacts + audit database (rebuilt by the pipeline)
+brain/models/
+trust/*.db
+trust/*.db-journal
+trust/*.db-wal
+trust/*.db-shm
+
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# ---------------------------------------------------------------------------
+# Node / Next.js
+# ---------------------------------------------------------------------------
+ui/node_modules/
+ui/.next/
+ui/out/
+ui/next-env.d.ts
+ui/*.tsbuildinfo
+npm-debug.log*
+
+# ---------------------------------------------------------------------------
+# Docker volumes (if you switch to bind mounts) / OS / editor noise
+# ---------------------------------------------------------------------------
+neo4j_data/
+.DS_Store
+.idea/
+.vscode/
+
+# Local dev server logs
+.logs/

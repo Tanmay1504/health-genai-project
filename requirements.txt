@@ -1,0 +1,41 @@
+# =============================================================================
+# HEALTH_GEN_AI — Python dependencies
+# Target: Python 3.12 (3.11 also works) on Apple Silicon (arm64) macOS.
+# Ranges are pinned to major versions that were tested together (Oct 2026).
+# Install:  python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+# =============================================================================
+
+# --- Data wrangling ----------------------------------------------------------
+pandas>=2.2,<4
+numpy>=1.26,<3
+
+# --- ML "brain" ---------------------------------------------------------------
+scikit-learn>=1.5,<2
+xgboost>=2.1,<4          # needs `brew install libomp` on macOS
+joblib>=1.4
+networkx>=3.3,<4         # fallback graph analytics when Neo4j GDS is unavailable
+
+# --- Graph DB driver ------------------------------------------------------------
+neo4j>=5.20,<7           # official Bolt driver (talks to the Neo4j container)
+
+# --- Agents + RAG -------------------------------------------------------------
+langgraph>=1.0,<2
+langchain-core>=1.0,<2
+langchain-openai>=1.0,<2          # LLM_PROVIDER=openai
+langchain-ollama>=1.0,<2          # LLM_PROVIDER=ollama
+langchain-chroma>=1.0,<2
+langchain-text-splitters>=1.0,<2
+chromadb>=1.0,<2
+fastembed>=0.5,<1                 # EMBEDDINGS_PROVIDER=local (CPU embeddings, default with groq)
+pydantic>=2.7,<3
+
+# --- API layer between the brain/agents and the Next.js UI ----------------------
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30
+
+# --- Config -------------------------------------------------------------------
+python-dotenv>=1.0
+
+# --- Tests ------------------------------------------------------------------
+pytest>=8.0
+httpx>=0.27              # used by FastAPI's TestClient
