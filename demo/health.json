@@ -1,0 +1,1 @@
+{"status":"ok","llm_provider":"groq","neo4j":true,"models_trained":true,"rows":{"patients":318,"claims_labeled":3489,"graph_features":3489}}
