@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import Nav from "@/components/Nav";
 import TooltipLayer from "@/components/TooltipLayer";
+import DemoBanner from "@/components/DemoBanner";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
           <Nav />
         </header>
+        <DemoBanner />
         <main>{children}</main>
         <TooltipLayer />
       </body>

@@ -4,7 +4,57 @@
 // in one place. The types mirror the Python response shapes. If you change a
 // response in api/main.py, update the matching type here.
 
+// Static demo mode (GitHub Pages build): no backend exists, so every call is
+// answered from pre-generated JSON in public/demo/ (see scripts/build_demo_snapshot.py).
+export const DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+export const DEMO_MISSING =
+  "Not included in this static demo snapshot. Clone the repo and run it locally to generate this live.";
+
+async function demoFile<T>(name: string): Promise<T> {
+  const res = await fetch(`${BASE_PATH}/demo/${name}.json`);
+  if (!res.ok) throw new Error(DEMO_MISSING);
+  return res.json() as Promise<T>;
+}
+
+const contains = (v: string | null | undefined, q: string) => (v ?? "").toLowerCase().includes(q);
+
+// Mirrors the FastAPI routes the pages use; filtering/limits are applied here
+// in the browser because a static site can't run queries.
+async function demoApi<T>(path: string, body?: Record<string, string | null>): Promise<T> {
+  const url = new URL(path, "http://demo");
+  const p = url.pathname, q = url.searchParams;
+  const limit = Number(q.get("limit") ?? 100);
+  const search = (q.get("q") ?? "").toLowerCase();
+  let m: RegExpMatchArray | null;
+
+  if (p === "/health") return demoFile<T>("health");
+  if (p === "/fraud/rings") return demoFile<T>("rings");
+  if (p === "/audit/verify") return demoFile<T>("audit_verify");
+  if (p === "/claims") {
+    const all = await demoFile<{ total: number; claims: ClaimRow[] }>(`claims_${q.get("view") ?? "all"}`);
+    const rows = search ? all.claims.filter((c) => contains(c.claim_id, search) || contains(c.name, search) || contains(c.dx_display, search)) : all.claims;
+    return { total: search ? rows.length : all.total, claims: rows.slice(0, limit) } as T;
+  }
+  if (p === "/patients") {
+    const all = await demoFile<PatientRow[]>("patients");
+    return (search ? all.filter((r) => contains(r.name, search)) : all).slice(0, limit) as T;
+  }
+  if ((m = p.match(/^\/patients\/([^/]+)\/encounters$/))) return demoFile<T>(`encounters/${m[1]}`);
+  if ((m = p.match(/^\/denial\/([^/]+)$/))) return demoFile<T>(`denial/${m[1]}`);
+  if ((m = p.match(/^\/process\/([^/]+)$/))) return demoFile<T>(`process/${m[1]}`);
+  if (p === "/appeal" && body?.claim_id) return demoFile<T>(`appeal/${body.claim_id}`);
+  if (p === "/preauth" && body?.patient_id) return demoFile<T>(`preauth/${body.patient_id}`);
+  if (p === "/audit") {
+    const all = await demoFile<AuditRecord[]>("audit");
+    const mod = q.get("module"), subj = q.get("subject_id");
+    return all.filter((r) => (!mod || r.module === mod) && (!subj || r.subject_id === subj)).slice(0, limit) as T;
+  }
+  throw new Error(DEMO_MISSING);
+}
+
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  if (DEMO) return demoApi<T>(path, typeof init?.body === "string" ? JSON.parse(init.body) : undefined);
   const res = await fetch(`/api${path}`, {
     ...init,
     headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },

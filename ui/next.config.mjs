@@ -9,8 +9,20 @@
 // before building (the Dockerfile does this with a build arg).
 const API_URL = process.env.API_URL || "http://localhost:8000";
 
+// DEMO_EXPORT=1 builds the static GitHub Pages demo instead: plain HTML/JS
+// files, no server, no rewrites; data comes from public/demo/*.json.
+const DEMO_EXPORT = process.env.DEMO_EXPORT === "1";
+
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+const demoConfig = {
+  output: "export",
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || "",
+  trailingSlash: true, // GitHub Pages serves /fraud/ as fraud/index.html
+  images: { unoptimized: true },
+};
+
+/** @type {import('next').NextConfig} */
+const serverConfig = {
   output: "standalone", // small self-contained server for the Docker image
   experimental: {
     // LLM-backed calls (appeal drafting on a local 8B model) can take a minute+;
@@ -22,4 +34,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default DEMO_EXPORT ? demoConfig : serverConfig;

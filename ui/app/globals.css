@@ -172,3 +172,9 @@ th[data-tip], h2[data-tip], h3[data-tip], dt[data-tip], .tipped {
   text-decoration: underline dotted; text-decoration-color: var(--muted); text-underline-offset: 3px;
 }
 .badge[data-tip] { box-shadow: inset 0 -1px 0 currentColor; }
+
+/* ---- static-demo banner (GitHub Pages build only) ------------------------- */
+.demo-banner {
+  padding: 8px 20px; font-size: 13px; text-align: center;
+  background: var(--accent-soft); color: var(--ink); border-bottom: 1px solid var(--line);
+}

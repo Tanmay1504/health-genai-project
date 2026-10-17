@@ -5,7 +5,7 @@
 // shows where each section came from: FHIR, the rule engine, or LLM + citations.
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { api, EncounterRow, inr, PatientRow, post, PreAuth } from "@/lib/api";
+import { api, DEMO, EncounterRow, inr, PatientRow, post, PreAuth } from "@/lib/api";
 import { encounterTip, planTip, PREAUTH } from "@/lib/glossary";
 import { useQueryParam } from "@/lib/useQueryParam";
 
@@ -90,8 +90,9 @@ export default function PreAuthPage() {
           {!patientId && <p className="muted">Select a patient first.</p>}
           {patientId && (
             <>
-              <select value={encounterId} onChange={(e) => setEncounterId(e.target.value)} style={{ width: "100%" }}
-                data-tip="A visit = one encounter (date · visit type · reason). AMB = outpatient, IMP = admitted, EMER = emergency.">
+              <select value={encounterId} onChange={(e) => setEncounterId(e.target.value)} style={{ width: "100%" }} disabled={DEMO}
+                data-tip={DEMO ? "In the demo, drafts were pre-generated for the latest hospital stay. Run locally to pick any visit."
+                               : "A visit = one encounter (date · visit type · reason). AMB = outpatient, IMP = admitted, EMER = emergency."}>
                 <option value="">Auto: latest inpatient stay (else latest visit)</option>
                 {encounters.map((e) => (
                   <option key={e.encounter_id} value={e.encounter_id}>{e.start} · {e.encounter_class} · {e.type}</option>

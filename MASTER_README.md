@@ -286,6 +286,14 @@ The fraud numbers are perfect because the planted rings are textbook-clean. Real
 - Denial labels are **simulated**, so model metrics describe this simulator, not any real insurer.
 - The audit log's hash chain proves tampering happened; it cannot prevent it. Production would ship records to WORM storage.
 
-## 7. Where to start reading
+## 7. Public demo (GitHub Pages)
+GitHub Pages can only serve static files, so the public demo replays real outputs instead of running Python, Neo4j or an LLM:
+```bash
+python scripts/build_demo_snapshot.py     # calls the real API in-process, saves JSON to ui/public/demo/ (needs GROQ_API_KEY)
+bash scripts/deploy_demo.sh               # static Next.js export (NEXT_PUBLIC_DEMO=1) → gh-pages branch
+```
+In demo mode `ui/lib/api.ts` answers every call from those JSON files. Groq's free tier allows 8K tokens/min; if a run stalls, re-run with `--resume` (see the script's docstring).
+
+## 8. Where to start reading
 
 See **[LEARNING_GUIDE.md](LEARNING_GUIDE.md)** for a file-by-file reading order, data → UI.
