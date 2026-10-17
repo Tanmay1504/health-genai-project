@@ -10,6 +10,7 @@
 import { forceCenter, forceCollide, forceLink, forceManyBody, forceSimulation, SimulationLinkDatum, SimulationNodeDatum } from "d3-force";
 import { useMemo, useState } from "react";
 import type { GraphLink, GraphNode } from "@/lib/api";
+import { NODE_KIND } from "@/lib/glossary";
 
 export const KIND_COLOR: Record<GraphNode["kind"], string> = {
   Patient: "#4f8cff",
@@ -67,7 +68,8 @@ export default function ForceGraph({ nodes, links }: { nodes: GraphNode[]; links
           );
         })}
         {layout.simNodes.map((n) => (
-          <g key={n.id} transform={`translate(${n.x},${n.y})`} onMouseEnter={() => setHover(n)} onMouseLeave={() => setHover(null)}>
+          <g key={n.id} transform={`translate(${n.x},${n.y})`} onMouseEnter={() => setHover(n)} onMouseLeave={() => setHover(null)}
+            data-tip={`${n.label}\n${NODE_KIND[n.kind]}`}>
             <circle r={KIND_RADIUS[n.kind]} fill={KIND_COLOR[n.kind]} stroke="var(--panel)" strokeWidth={1.5} />
             {(n.kind === "Organization" || n.kind === "Practitioner" || n.kind === "Phone") && (
               // The stroke drawn under the fill (paintOrder) gives labels a halo,

@@ -5,7 +5,10 @@
 // interesting claims for an appeal demo.
 import { useEffect, useState } from "react";
 import { api, ClaimRow, inr, short } from "@/lib/api";
+import { CLAIM_COL, reasonTip, VIEW, WRONGFUL } from "@/lib/glossary";
 import Meter from "./Meter";
+
+const COLS = ["Claim", "Patient", "Diagnosis", "Amount", "Denial risk", "Insurer outcome"];
 
 export default function ClaimPicker({ onPick, defaultView = "wrongful" }: { onPick: (id: string) => void; defaultView?: string }) {
   const [view, setView] = useState(defaultView);
@@ -25,7 +28,7 @@ export default function ClaimPicker({ onPick, defaultView = "wrongful" }: { onPi
         <span className="spacer" />
         <div className="tabs">
           {["wrongful", "denied", "high_risk", "all"].map((v) => (
-            <button key={v} className={view === v ? "on" : ""} onClick={() => setView(v)}>
+            <button key={v} className={view === v ? "on" : ""} onClick={() => setView(v)} data-tip={VIEW[v]}>
               {v.replace("_", " ")}
             </button>
           ))}
@@ -35,7 +38,7 @@ export default function ClaimPicker({ onPick, defaultView = "wrongful" }: { onPi
       <div className="table-wrap">
         <table>
           <thead>
-            <tr><th>Claim</th><th>Patient</th><th>Diagnosis</th><th className="num">Amount</th><th>Denial risk</th><th>Outcome</th></tr>
+            <tr>{COLS.map((c) => <th key={c} className={c === "Amount" ? "num" : undefined} data-tip={CLAIM_COL[c]}>{c}</th>)}</tr>
           </thead>
           <tbody>
             {rows.map((r) => (
@@ -44,8 +47,12 @@ export default function ClaimPicker({ onPick, defaultView = "wrongful" }: { onPi
                 <td>{r.name}</td>
                 <td>{r.dx_display ?? "—"}</td>
                 <td className="num">{inr(r.total_inr)}</td>
-                <td><Meter value={r.denial_risk} /></td>
-                <td>{r.denied ? <span className="badge bad">{r.denial_reason}</span> : <span className="badge good">approved</span>}</td>
+                <td><Meter value={r.denial_risk} label="Chance the insurer rejects this claim" /></td>
+                <td>
+                  {r.denied ? <span className="badge bad" data-tip={reasonTip(r.denial_reason)}>{r.denial_reason}</span>
+                            : <span className="badge good" data-tip={reasonTip("APPROVED")}>approved</span>}
+                  {r.denial_wrongful ? <span className="badge warn" style={{ marginLeft: 4 }} data-tip={WRONGFUL}>wrongful</span> : null}
+                </td>
               </tr>
             ))}
           </tbody>

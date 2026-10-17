@@ -1,6 +1,7 @@
 // Root layout: shared top bar + navigation around every page.
 import type { Metadata } from "next";
 import Nav from "@/components/Nav";
+import TooltipLayer from "@/components/TooltipLayer";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Nav />
         </header>
         <main>{children}</main>
+        <TooltipLayer />
       </body>
     </html>
   );

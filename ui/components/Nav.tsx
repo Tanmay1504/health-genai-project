@@ -4,6 +4,7 @@
 // route via usePathname().
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { NAV } from "@/lib/glossary";
 
 const LINKS = [
   { href: "/", label: "Claims" },
@@ -19,7 +20,7 @@ export default function Nav() {
   return (
     <nav className="nav">
       {LINKS.map((l) => (
-        <Link key={l.href} href={l.href} className={path === l.href ? "active" : ""}>
+        <Link key={l.href} href={l.href} className={path === l.href ? "active" : ""} data-tip={NAV[l.href]}>
           {l.label}
         </Link>
       ))}

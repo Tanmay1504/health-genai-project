@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import ForceGraph, { KIND_COLOR } from "@/components/ForceGraph";
 import Meter from "@/components/Meter";
 import { api, inr, Ring, RingsResponse } from "@/lib/api";
+import { COMPONENT, FRAUD, NODE_KIND } from "@/lib/glossary";
 
 const COMPONENT_LABEL: Record<string, string> = {
   identity: "Shared phone / address",
@@ -44,10 +45,10 @@ export default function FraudPage() {
       {error && <div className="alert bad">{error}</div>}
       {data && (
         <div className="row" style={{ marginBottom: 14 }}>
-          <span className="badge info">backend: {data.backend}</span>
-          <span className="badge info">flag threshold: {data.threshold}</span>
+          <span className="badge info" data-tip={FRAUD.backend}>backend: {data.backend}</span>
+          <span className="badge info" data-tip={FRAUD.threshold}>flag threshold: {data.threshold}</span>
           {ev?.patient_precision !== undefined && (
-            <span className="muted">
+            <span className="muted tipped" data-tip={FRAUD.eval}>
               vs planted answer key → precision <b>{ev.patient_precision}</b>, recall <b>{ev.patient_recall}</b>
             </span>
           )}
@@ -61,9 +62,9 @@ export default function FraudPage() {
                onClick={() => setSel(r)}>
             <div className="row">
               <h2 style={{ margin: 0 }}>{r.ring_id}</h2>
-              <span className="badge bad">score {r.ring_score.toFixed(2)}</span>
+              <span className="badge bad" data-tip={FRAUD.score}>score {r.ring_score.toFixed(2)}</span>
               <span className="spacer" />
-              <span className="muted">{inr(r.counts.billed_inr)} billed</span>
+              <span className="muted tipped" data-tip={FRAUD.billed}>{inr(r.counts.billed_inr)} billed</span>
             </div>
             <p className="muted" style={{ margin: "6px 0" }}>
               {r.counts.patients} patients · {r.counts.clinics} clinics · {r.counts.doctors} doctors · {r.counts.claims} claims
@@ -76,26 +77,26 @@ export default function FraudPage() {
       {sel && (
         <div className="grid two">
           <div className="panel">
-            <h2>{sel.ring_id} network</h2>
+            <h2 data-tip="The group drawn as a map: dots are people, clinics, phones and addresses; lines are connections (visited, treated by, lives at, referred to). Hover a dot for its name.">{sel.ring_id} network</h2>
             <div className="legend" style={{ marginBottom: 8 }}>
               {Object.entries(KIND_COLOR).map(([k, c]) => (
-                <span key={k} style={{ ["--c" as string]: c }}>{k}</span>
+                <span key={k} style={{ ["--c" as string]: c }} data-tip={NODE_KIND[k]}>{k}</span>
               ))}
             </div>
             <ForceGraph nodes={sel.graph.nodes} links={sel.graph.links} />
           </div>
           <div className="panel">
-            <h2>Pattern scores</h2>
+            <h2 data-tip="How strongly this group shows each of the 5 fraud patterns (0–100%). Hover a pattern name.">Pattern scores</h2>
             {Object.entries(sel.components).map(([k, v]) => (
               <div key={k} style={{ marginBottom: 8 }}>
-                <div>{COMPONENT_LABEL[k] ?? k}</div>
-                <Meter value={v} />
+                <div><span className="tipped" data-tip={COMPONENT[k]}>{COMPONENT_LABEL[k] ?? k}</span></div>
+                <Meter value={v} label={COMPONENT_LABEL[k] ?? k} />
               </div>
             ))}
             <p className="muted">Ring score = mean of the two strongest patterns.</p>
             {ev?.overlap_with_planted_rings?.[sel.ring_id] && (
               <>
-                <h3>Overlap with planted rings (evaluation only)</h3>
+                <h3 data-tip={FRAUD.overlap}>Overlap with planted rings (evaluation only)</h3>
                 <ul className="clean">
                   {Object.entries(ev.overlap_with_planted_rings[sel.ring_id]).map(([g, n]) => <li key={g}>{g}: {n} patients</li>)}
                 </ul>
@@ -103,7 +104,7 @@ export default function FraudPage() {
             )}
             {Object.keys(data?.cypher_pattern_hits ?? {}).length > 0 && (
               <>
-                <h3>Cypher pattern queries (whole graph)</h3>
+                <h3 data-tip={FRAUD.cypher}>Cypher pattern queries (whole graph)</h3>
                 <ul className="clean">
                   {Object.entries(data!.cypher_pattern_hits).map(([q, n]) => <li key={q}><span className="mono">{q}</span>: {n} hits</li>)}
                 </ul>
